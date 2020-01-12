@@ -1,5 +1,7 @@
 <?php
 session_start();
+require_once("Highscore.php");
+
 $maxTries = 15;
 $min = 1;
 $max = 100;
@@ -35,9 +37,15 @@ if (isset($_POST['alias'])
         echo '<div>Maximale Versuche erreicht du Dummie</div>';
         echo '<div>Du hast ' . ((int)microtime(true) - (int)$_SESSION['starttime'])  . ' Sekunden gebraucht.</div>';
         $alias = $_SESSION['alias'];
-        session_destroy();
         $_SESSION['tries'] = 1;
         $_SESSION['alias'] = $alias;
+
+        echo '<form action="index.php" method="post">';
+        echo '<div>' . $_SESSION['alias'] . ' willst du es nochmal versuchen ?</div>';
+        echo '<input type="submit">';
+        echo '</form>';
+        $won = true;
+        session_destroy();
     } else {
         if (isset($_POST['tipp'])
             && isset($_SESSION['randomNumber'])
@@ -46,9 +54,9 @@ if (isset($_POST['alias'])
                 echo '<div>Gratuliere du hast es Geschafft beim ' . $_SESSION['tries'] . ' versuch.</div>';
                 echo '<div>Du hast ' . ((int)microtime(true) - (int)$_SESSION['starttime'])  . ' Sekunden gebraucht.</div>';
                 $_SESSION['seconds'] = (int)microtime(true) - (int)$_SESSION['starttime'];
-                include 'saveHighscore.php';
+                Highscore::updateHighscore();
                 $alias = $_SESSION['alias'];
-                session_destroy();
+                //session_destroy();
                 $_SESSION['tries'] = 1;
                 $_SESSION['alias'] = $alias;
                 $won = true;
@@ -58,25 +66,9 @@ if (isset($_POST['alias'])
                 echo '<input type="submit">';
                 echo '</form>';
 
-                include 'getHighscore.php';
-                $size = count($_SESSION['highscore']);
+                Highscore::outputHighscore();
 
-                echo '<table>';
-                echo    '<tr>
-                    <td>Name</td>
-                    <td>Sekunden</td>
-                    <td>Tipps</td>
-                  </tr>';
-
-                for ($a = 0; $a < $size; $a++) {
-                    echo    '<tr>
-                    <td>' . $_SESSION['highscore'][$a]['alias'] .'</td>
-                    <td>' . $_SESSION['highscore'][$a]['sekunden'] . '</td>
-                    <td>' . $_SESSION['highscore'][$a]['tippzahl'] . '</td>
-                  </tr>';
-                }
-
-                echo '</table>';
+                unset($_SESSION['starttime'], $_SESSION['seconds']);
 
             } elseif ($_POST['tipp'] > $_SESSION['randomNumber']) {
                 echo '<div>Tiefer</div>';
@@ -113,23 +105,5 @@ if (isset($_POST['alias'])
 
     echo '<h3>Hier ist der Highscore</h3>';
 
-    include 'getHighscore.php';
-    $size = count($_SESSION['highscore']);
-
-    echo '<table>';
-    echo    '<tr>
-                    <td>Name</td>
-                    <td>Sekunden</td>
-                    <td>Tipps</td>
-                  </tr>';
-
-    for ($a = 0; $a < $size; $a++) {
-        echo    '<tr>
-                    <td>' . $_SESSION['highscore'][$a]['alias'] .'</td>
-                    <td>' . $_SESSION['highscore'][$a]['sekunden'] . '</td>
-                    <td>' . $_SESSION['highscore'][$a]['tippzahl'] . '</td>
-                  </tr>';
-    }
-
-    echo '</table>';
+    Highscore::outputHighscore();
 }
